@@ -22,6 +22,9 @@ HEADERS  += MainWindow.h \
     FileOpenError.h \
     FileReadError.h \
     Parser.h \
-    Scene.h
+    Scene.h \
+    LogicError.h \
+    EmptyInput.h \
+    BadLine.h
 
 FORMS    += MainWindow.ui

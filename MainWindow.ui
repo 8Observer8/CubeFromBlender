@@ -22,7 +22,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="Scene" name="widget" native="true"/>
+     <widget class="Scene" name="sceneWidget" native="true"/>
     </item>
    </layout>
   </widget>

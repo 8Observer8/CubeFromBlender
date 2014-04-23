@@ -6,70 +6,43 @@ Scene::Scene( QWidget* pwgt/*= 0*/ ) :
     m_xRot(-90),
     m_yRot(0),
     m_zRot(0),
-    m_nSca(1),
-    m_sizeOfpointsArray(0),
-    m_sizeOfIndexesArray(0) {
+    m_nSca(1) {
 }
 
 void Scene::setPointsAndIndexes(QList<QVector3D> &points, QList<QVector3D> &indexes)
 {
+    const int elmToItem = 3;
+
+    m_vertexArray.resize( points.size() * elmToItem );
+    m_colorArray.resize( points.size() * elmToItem );
+    m_indexArray.resize( indexes.size() * elmToItem );
+
     // Points
-    m_sizeOfpointsArray = points.size();
-    m_vertexArray = new GLfloat*[m_sizeOfpointsArray];
-    const int amountOfCoordinates = 3;
-    for (int i = 0; i < m_sizeOfpointsArray; i++) {
-        m_vertexArray[i] = new GLfloat[amountOfCoordinates];
-    }
+    for( int i = 0; i < points.size(); i++ )
+    {
+        const int idx = i * elmToItem;
+        m_vertexArray[ idx + 0 ] = points[ i ].x();
+        m_vertexArray[ idx + 1 ] = points[ i ].y();
+        m_vertexArray[ idx + 2 ] = points[ i ].z();
 
-    for (int row = 0; row < m_sizeOfpointsArray; ++row) {
-        int col = 0;
-        m_vertexArray[row][col++] = points[row].x();
-        m_vertexArray[row][col++] = points[row].y();
-        m_vertexArray[row][col] = points[row].z();
+        m_colorArray[ idx + 0 ] = 1. / (i+1);
+        m_colorArray[ idx + 1 ] = 1. / (i+1);
+        m_colorArray[ idx + 2 ] = 1. / (i+1);
     }
-
-//    for (int row = 0; row < m_sizeOfpointsArray; ++row) {
-//        for (int col = 0; col < amountOfCoordinates; ++col) {
-//            qDebug() << m_vertexArray[row][col];
-//        }
-//    }
 
     // Indexes
-    m_sizeOfIndexesArray = indexes.size();
-    m_indexArray = new GLfloat*[m_sizeOfIndexesArray];
-    for (int i = 0; i < m_sizeOfIndexesArray; i++) {
-        m_indexArray[i] = new GLfloat[amountOfCoordinates];
+    for( int i = 0; i < indexes.size(); i++ )
+    {
+        const int idx = i * elmToItem;
+        m_indexArray[ idx + 0 ] = GLubyte( indexes[ i ].x() ) - 1;
+        m_indexArray[ idx + 1 ] = GLubyte( indexes[ i ].y() ) - 1;
+        m_indexArray[ idx + 2 ] = GLubyte( indexes[ i ].z() ) - 1;
     }
 
-    for (int row = 0; row < m_sizeOfIndexesArray; ++row) {
-        int col = 0;
-        m_indexArray[row][col++] = indexes[row].x();
-        m_indexArray[row][col++] = indexes[row].y();
-        m_indexArray[row][col] = indexes[row].z();
-    }
+//    qDebug() << m_vertexArray;
+//    qDebug() << m_indexArray;
 
-//    for (int row = 0; row < m_sizeOfIndexesArray; ++row) {
-//        for (int col = 0; col < amountOfCoordinates; ++col) {
-//            qDebug() << m_indexArray[row][col];
-//        }
-//    }
-
-    // Colors
-    m_colorArray = new GLfloat*[m_sizeOfpointsArray];
-    for (int i = 0; i < m_sizeOfpointsArray; i++) {
-        m_colorArray[i] = new GLfloat[amountOfCoordinates];
-    }
-
-    for (int row = 0; row < m_sizeOfpointsArray; ++row) {
-        int col = 0;
-        m_colorArray[row][col++] = 0.1f*( qrand()%11 ); // R - красная составляющая
-        m_colorArray[row][col++] = 0.1f*( qrand()%11 ); // G - зелёная составляющая
-        m_colorArray[row][col] = 0.1f*( qrand()%11 ); // B - синяя составляющая
-        qDebug() << m_colorArray[row][0] << " " << m_colorArray[row][1] << " " << m_colorArray[row][2];
-        // qrand()%11 - псевдослучайное число от 0 до 10
-    }
-
-    draw();
+    updateGL();
 }
 
 void Scene::initializeGL()
@@ -205,47 +178,12 @@ void Scene::drawAxis()
     glEnd();
 }
 
-GLfloat vertexArray[3][3];
-GLfloat colorArray[3][3];
-GLubyte indexArray[1][3];
-
 void Scene::draw()
 {
-    vertexArray[0][0] = 1.0;
-    vertexArray[0][1] = 0.0;
-    vertexArray[0][2] = 0.0;
-
-    vertexArray[1][0] = 0.0;
-    vertexArray[1][1] = 0.0;
-    vertexArray[1][2] = 0.0;
-
-    vertexArray[2][0] = 0.2;
-    vertexArray[2][1] = 0.8;
-    vertexArray[2][2] = 0.0;
-
     // указываем, откуда нужно извлечь данные о массиве вершин
-    glVertexPointer(3, GL_FLOAT, 0, vertexArray);
-
-    for (int row = 0; row < 3; ++row) {
-        for (int col = 0; col < 3; ++col) {
-            colorArray[row][col] = 0.5;
-        }
-    }
-
+    glVertexPointer(3, GL_FLOAT, 0, m_vertexArray.constData());
     // указываем, откуда нужно извлечь данные о массиве цветов вершин
-    glColorPointer(3, GL_FLOAT, 0, colorArray);
-
-    indexArray[0][0] = 0;
-    indexArray[0][1] = 2;
-    indexArray[0][2] = 1;
-
+    glColorPointer(3, GL_FLOAT, 0, m_colorArray.constData());
     // используя массивы вершин и индексов, строим поверхности
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, indexArray);
-
-//    // указываем, откуда нужно извлечь данные о массиве вершин
-//    glVertexPointer(3, GL_FLOAT, 0, m_vertexArray);
-//    // указываем, откуда нужно извлечь данные о массиве цветов вершин
-//    glColorPointer(3, GL_FLOAT, 0, m_colorArray);
-//    // используя массивы вершин и индексов, строим поверхности
-//    glDrawElements(GL_TRIANGLES, m_sizeOfIndexesArray * 3, GL_UNSIGNED_BYTE, m_indexArray);
+    glDrawElements(GL_TRIANGLES, m_indexArray.size(), GL_UNSIGNED_BYTE, m_indexArray.constData());
 }

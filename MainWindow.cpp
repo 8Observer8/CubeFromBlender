@@ -43,14 +43,21 @@ void MainWindow::on_actionLoad_triggered()
         return;
     }
 
-
     QList<QVector3D> points;
     QList<QVector3D> indexes;
     Parser parser;
-    parser.parseData(all, points, indexes);
 
-    Scene scene;
-    scene.setPointsAndIndexes(points, indexes);
+    try {
+        parser.parseData( all, points, indexes );
+    } catch ( const LogicError &e ) {
+        QMessageBox::information( this, tr( "Information" ), QString::fromUtf8( e.what() ) );
+        return;
+    } catch ( ... ) {
+        QMessageBox::information( this, tr( "Information" ), tr( "Uncaught exception." ) );
+        return;
+    }
+
+    ui->sceneWidget->setPointsAndIndexes( points, indexes );
 
     m_statusLabel->setText( fileName );
 }

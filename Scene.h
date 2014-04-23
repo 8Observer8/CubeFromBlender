@@ -34,11 +34,9 @@ private:
     GLfloat m_nSca; // переменная отвечает за масштабирование объекта
 
     QPoint m_mousePosition; // координата указателя мыши
-    GLfloat **m_vertexArray;
-    GLfloat **m_indexArray;
-    GLfloat **m_colorArray;
-    int m_sizeOfpointsArray;
-    int m_sizeOfIndexesArray;
+    QVector<GLfloat> m_vertexArray;
+    QVector<GLfloat> m_colorArray;
+    QVector<GLubyte> m_indexArray;
 };
 
 #endif // SCENE_H
